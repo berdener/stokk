@@ -1,13 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Satış Ekranı</h2>
-  <form method="POST">
-    <label>Müşteri Adı:</label>
-    <input type="text" name="musteri" required><br>
-    <label>Ürün:</label>
-    <input type="text" name="urun" required><br>
-    <label>Adet:</label>
-    <input type="number" name="adet" min="1" value="1"><br>
-    <button type="submit">Satışı Kaydet</button>
-  </form>
+<h4 class="mb-3">Satış</h4>
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <form method="POST" class="row g-3">
+      <div class="col-lg-4">
+        <label class="form-label">Müşteri</label>
+        <input class="form-control" name="musteri" placeholder="Ad/Telefon">
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Barkod</label>
+        <input class="form-control" name="urun" placeholder="Barkodu okut" autofocus>
+      </div>
+      <div class="col-lg-2">
+        <label class="form-label">Adet</label>
+        <input class="form-control" name="adet" type="number" min="1" value="1">
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label">Ödeme</label>
+        <select class="form-select" name="odeme">
+          <option value="nakit">Nakit</option>
+          <option value="kart">Kart</option>
+          <option value="veresiye">Veresiye</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-success btn-lg"><i class="bi bi-check2-circle me-1"></i>Satışı Tamamla</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
