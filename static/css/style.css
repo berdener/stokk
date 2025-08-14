@@ -1,23 +1,6 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  margin: 0;
-  padding: 0;
-}
-
-header {
-  background: #000;
-  color: #fff;
-  padding: 15px;
-  text-align: center;
-}
-
-header nav a {
-  color: #fff;
-  margin: 0 10px;
-  text-decoration: none;
-}
-
-main {
-  padding: 20px;
-}
+:root { --accent:#111; }
+.navbar-brand { letter-spacing:.5px }
+.card { border-radius: 14px; }
+.btn { border-radius: 10px; }
+.table thead th { background:#f3f3f3; }
+.table tr:hover { background:#fff8e6; }
