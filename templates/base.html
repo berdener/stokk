@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Stok ve Satış Paneli</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Merve Sarıdemir Shoes - Stok Paneli</h1>
+    <nav>
+      <a href="{{ url_for('index') }}">Ana Sayfa</a>
+      <a href="{{ url_for('urunler') }}">Ürünler</a>
+      <a href="{{ url_for('satis') }}">Satış</a>
+      <a href="{{ url_for('musteriler') }}">Müşteriler</a>
+      <a href="{{ url_for('raporlar') }}">Raporlar</a>
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
