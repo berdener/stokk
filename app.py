@@ -1,5 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import os
+import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+
+# .env dosyasını lokal için yükler
+load_dotenv()
+
+app = Flask(__name__)
+
+# Railway DATABASE_URL değişkenini çekiyoruz
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 
 app = Flask(__name__)
 app.secret_key = "secret-key"
