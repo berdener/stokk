@@ -1,5 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Ürünler</h2>
-  <p>Burada Shopify’dan çekilen ürünler listelenecek.</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4>Ürünler</h4>
+  <div>
+    <a class="btn btn-primary"><i class="bi bi-cloud-arrow-down me-1"></i>Shopify’dan Çek</a>
+    <a class="btn btn-outline-dark"><i class="bi bi-plus-circle me-1"></i>Manuel Ekle</a>
+  </div>
+</div>
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <table class="table table-striped align-middle" id="tbl">
+      <thead><tr><th>Ad</th><th>Barkod</th><th>Fiyat</th><th>Stok</th><th class="text-end">İşlem</th></tr></thead>
+      <tbody>
+        <!-- backend veri ile doldur -->
+        <tr><td>Örnek Ürün</td><td>MS000001</td><td>₺ 0,00</td><td>0</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-upc"></i></button>
+          </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>$(function(){ $('#tbl').DataTable(); });</script>
 {% endblock %}
