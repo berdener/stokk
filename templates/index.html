@@ -1,5 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-  <h2>Hoş geldiniz</h2>
-  <p>Stok ve satış yönetim paneline giriş yaptınız.</p>
+<h4 class="mb-3">Dashboard</h4>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="text-muted">Bugünkü Ciro</div>
+        <div class="display-6 fw-bold">₺ —</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="text-muted">Aylık Ciro</div>
+        <div class="display-6 fw-bold">₺ —</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h6 class="card-title mb-2">Günlük Satış Grafiği</h6>
+        <canvas id="dailyChart" height="90"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // örnek boş grafik (gerçek veriyi backend’e bağlayınca dolar)
+  new Chart(document.getElementById('dailyChart'), {
+    type:'bar',
+    data:{labels:['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'], datasets:[{label:'₺', data:[0,0,0,0,0,0,0]}]}
+  });
+</script>
 {% endblock %}
