@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Satış Ekranı</h2>
+  <form method="POST">
+    <label>Müşteri Adı:</label>
+    <input type="text" name="musteri" required><br>
+    <label>Ürün:</label>
+    <input type="text" name="urun" required><br>
+    <label>Adet:</label>
+    <input type="number" name="adet" min="1" value="1"><br>
+    <button type="submit">Satışı Kaydet</button>
+  </form>
+{% endblock %}
