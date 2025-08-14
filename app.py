@@ -26,6 +26,22 @@ def satis():
 @app.route("/musteriler")
 def musteriler():
     return render_template("musteriler.html")
+@app.route("/api/customers", methods=["POST"])
+def api_customers_add():
+    data = request.get_json(force=True)
+    name = (data.get("name") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    email = (data.get("email") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "message": "Ad soyad gerekli."}), 400
+
+    c = Customer(name=name, phone=phone, email=email)
+    db.session.add(c)
+    db.session.commit()
+
+    return jsonify({"ok": True, "message": "Müşteri eklendi.",
+                    "customer": {"id": c.id, "name": c.name, "phone": c.phone or "-",
+                                 "email": c.email or "-", "debt": f"{c.debt:.2f}"}})
 
 # Raporlar
 @app.route("/raporlar")
