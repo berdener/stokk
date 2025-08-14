@@ -1,6 +1,4 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 # .env dosyasını lokal için yükler
 load_dotenv()
