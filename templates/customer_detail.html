@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block content %}
+<h3>{{ c.name }}</h3>
+<p>Telefon: {{ c.phone or '-' }} | E-posta: {{ c.email or '-' }}</p>
+<p><strong>Borç:</strong> {{ '%.2f'|format(c.debt or 0) }} ₺</p>
+
+<h5 class="mt-4">Tahsilat Yap</h5>
+<form method="post" action="{{ url_for('collect_credit', customer_id=c.id) }}" class="row g-2">
+  <div class="col-md-3"><input class="form-control" name="amount" type="number" step="0.01" placeholder="Tutar (₺)" required></div>
+  <div class="col-md-3"><button class="btn btn-success">Tahsil Et</button></div>
+</form>
+
+<h5 class="mt-4">Son 1 Yıl Alışveriş Geçmişi</h5>
+<table class="table table-sm table-striped">
+  <thead><tr><th>Tarih</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>Ödeme</th></tr></thead>
+  <tbody>
+  {% for s in sales %}
+    <tr><td>{{ s.date.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ s.product_name }}</td><td>{{ s.qty }}</td><td>{{ '%.2f'|format(s.total) }} ₺</td><td>{{ s.payment }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
