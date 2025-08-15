@@ -348,15 +348,35 @@ def api_cart_clear():
 @app.post("/api/cart/checkout")
 def api_cart_checkout():
     data = request.get_json(force=True)
-    payment = (data.get("payment") or "nakit").strip()  # nakit/kart/veresiye
+    payment = (data.get("payment") or "nakit").strip()   # nakit/kart/veresiye
     cust_id = data.get("customer_id")
     customer = Customer.query.get(cust_id) if cust_id else None
+
+    disc_type = (data.get("discount_type") or "none").strip()   # none/percent/amount
+    try:
+        disc_value = float(data.get("discount_value") or 0)
+    except:
+        disc_value = 0.0
 
     cart = get_cart()
     if not cart:
         return jsonify({"ok": False, "message": "Sepet boş"}), 400
 
-    grand_total = 0.0
+    # 1) Ara toplam
+    subtotal = sum(float(i["price"]) * int(i["qty"]) for i in cart)
+
+    # 2) İndirim
+    discount = 0.0
+    if disc_type == "percent":
+        p = min(max(disc_value, 0), 100)      # 0–100 arası
+        discount = subtotal * (p / 100.0)
+    elif disc_type == "amount":
+        discount = min(max(disc_value, 0.0), subtotal)
+
+    grand_total = round(subtotal - discount, 2)
+    factor = (grand_total / subtotal) if subtotal > 0 else 1.0  # Ürünlere oransal dağıt
+
+    # 3) Satış kalemlerini kaydet + stok düş
     for item in cart:
         prod = Product.query.get(item["product_id"])
         if not prod:
@@ -364,33 +384,38 @@ def api_cart_checkout():
 
         qty = int(item["qty"])
         unit_price = float(item["price"])
-        total = unit_price * qty
-        grand_total += total
+        line_total = round(unit_price * qty * factor, 2)  # indirim dağıtılmış tutar
 
         sale = Sale(customer_id=customer.id if customer else None,
                     product_id=prod.id,
                     qty=qty,
-                    unit_price=unit_price,
-                    total_price=total,
+                    unit_price=unit_price,         # etiket fiyatı
+                    total_price=line_total,        # indirimli satır toplamı
                     payment=payment,
                     is_paid=(payment != "veresiye"))
         db.session.add(sale)
 
-        # stok düş
         prod.stock = (prod.stock or 0) - qty
-        db.session.flush()  # id'ler oluşsun
-
+        db.session.flush()
         try:
             adjust_shopify_stock(prod)
         except Exception as e:
             print("Shopify sync error:", e)
 
+    # 4) Veresiye borcu
     if payment == "veresiye" and customer:
         customer.debt = (customer.debt or 0.0) + grand_total
 
     db.session.commit()
     save_cart([])
-    return jsonify({"ok": True, "message": "Satış tamamlandı", "total": round(grand_total, 2)})
+
+    return jsonify({
+        "ok": True,
+        "message": "Satış tamamlandı",
+        "subtotal": round(subtotal, 2),
+        "discount": round(discount, 2),
+        "total": round(grand_total, 2)
+    })
 
 # ---- Customers
 @app.route("/customers")
