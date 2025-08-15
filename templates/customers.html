@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Müşteriler</h3>
+  <a class="btn btn-primary" href="{{ url_for('add_customer_page') }}">Yeni Müşteri</a>
+</div>
+<table class="table table-striped" id="tbl">
+  <thead><tr><th>Ad</th><th>Telefon</th><th>E-posta</th><th>Borç (₺)</th><th>İşlem</th></tr></thead>
+  <tbody>
+  {% for c in customers %}
+    <tr>
+      <td>{{ c.name }}</td><td>{{ c.phone or '-' }}</td><td>{{ c.email or '-' }}</td><td>{{ '%.2f'|format(c.debt or 0) }}</td>
+      <td><a class="btn btn-sm btn-outline-dark" href="{{ url_for('customer_detail', customer_id=c.id) }}">Profil</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<script>$(function(){$('#tbl').DataTable();});</script>
+{% endblock %}
