@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block content %}
+<h3 class="mb-4">Dashboard</h3>
+<div class="row g-3">
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Bugünkü Ciro</div><div class="fs-3 fw-bold">{{ kpis.today_revenue|round(2) }} ₺</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Aylık Ciro</div><div class="fs-3 fw-bold">{{ kpis.month_revenue|round(2) }} ₺</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Açık Veresiye</div><div class="fs-3 fw-bold">{{ kpis.open_credit|round(2) }} ₺</div>
+  </div></div></div>
+  <div class="col-md-3"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Düşük Stok</div><div class="fs-3 fw-bold">{{ kpis.low_stock }}</div>
+  </div></div></div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <h6 class="card-title">Günlük Satış (₺)</h6>
+    <canvas id="dailyChart" height="120"></canvas>
+  </div></div></div>
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <h6 class="card-title">Ödeme Tipi Dağılımı</h6>
+    <canvas id="pieChart" height="120"></canvas>
+  </div></div></div>
+</div>
+
+<script>
+new Chart(document.getElementById('dailyChart'), {type:'bar',
+  data:{labels: {{ charts.daily.labels|tojson }}, datasets:[{label:'₺', data: {{ charts.daily.values|tojson }} }]}});
+new Chart(document.getElementById('pieChart'), {type:'pie',
+  data:{labels: {{ charts.pay.labels|tojson }}, datasets:[{data: {{ charts.pay.values|tojson }} }]}});
+</script>
+{% endblock %}
