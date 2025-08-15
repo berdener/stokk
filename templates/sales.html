@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block content %}
+<h3>Satış</h3>
+<form method="post" class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">Müşteri</label>
+    <select class="form-select" name="customer_id">
+      <option value="">(Seçilmedi)</option>
+      {% for c in customers %}<option value="{{ c.id }}">{{ c.name }}{% if c.phone %} - {{ c.phone }}{% endif %}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3"><label class="form-label">Barkod</label><input class="form-control" name="barcode" placeholder="Barkodu okutun" autofocus required></div>
+  <div class="col-md-2"><label class="form-label">Adet</label><input class="form-control" name="qty" type="number" min="1" value="1"></div>
+  <div class="col-md-3">
+    <label class="form-label">Ödeme</label>
+    <select class="form-select" name="payment">
+      <option value="nakit">Nakit</option>
+      <option value="kart">Kart</option>
+      <option value="veresiye">Veresiye</option>
+    </select>
+  </div>
+  <div class="col-12"><button class="btn btn-success btn-lg">Satışı Tamamla</button></div>
+</form>
+{% endblock %}
