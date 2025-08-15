@@ -23,8 +23,8 @@
 
 <script>
 new Chart(document.getElementById('mchart'), {type:'bar',
-  data:{labels: {{ charts.month.labels|tojson }}, datasets:[{label:'₺', data: {{ charts.month.values|tojson }} }]} });
+  data:{labels: {{ charts.month.labels|tojson }}, datasets:[{label:'₺', data: {{ charts.month['values']|tojson }} }]}
 new Chart(document.getElementById('paychart'), {type:'doughnut',
-  data:{labels: {{ charts.pay.labels|tojson }}, datasets:[{data: {{ charts.pay.values|tojson }} }]}} );
+  data:{labels: {{ charts.pay.labels|tojson }}, datasets:[{data: {{ charts.pay['values']|tojson }} }]}
 </script>
 {% endblock %}
