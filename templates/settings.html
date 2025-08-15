@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Ayarlar</h3>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Shopify Mağaza Alan Adı</label>
+            <input class="form-control" name="shop_url"
+                   value="{{ (settings.shop_url or '') }}"
+                   placeholder="myshop.myshopify.com">
+            <div class="form-text">Örn: myshop.myshopify.com</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Admin API Access Token</label>
+            <input class="form-control" name="api_token"
+                   value="{{ (settings.api_token or '') }}"
+                   placeholder="shpat_...">
+            <div class="form-text">Shopify admin → Apps → Develop apps → Admin API access token</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Location ID</label>
+            <input class="form-control" name="location_id"
+                   value="{{ (settings.location_id or '') }}"
+                   placeholder="123456789">
+            <div class="form-text">
+              Mağaza lokasyon kimliği. Bilmiyorsan aşağıdaki “Lokasyonları Getir” ile öğrenebilirsin.
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Kaydet</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('get_locations') }}">Lokasyonları Getir</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if locations %}
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Shopify Lokasyonları</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead><tr><th>ID</th><th>Ad</th><th>Aktif</th></tr></thead>
+            <tbody>
+              {% for loc in locations %}
+              <tr>
+                <td>{{ loc.id }}</td>
+                <td>{{ loc.name }}</td>
+                <td>{{ 'Evet' if loc.active else 'Hayır' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted mb-0">
+          Kullanmak istediğin lokasyonun <strong>ID</strong> değerini yukarıdaki forma yazıp “Kaydet” de.
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
