@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block content %}
+<h3>Veresiye</h3>
+<p>Veresiye satışlar ciroya <strong>tahsilatta</strong> eklenir.</p>
+<table class="table table-striped" id="tbl">
+  <thead><tr><th>Müşteri</th><th>Borç (₺)</th><th>İşlem</th></tr></thead>
+  <tbody>
+  {% for c in customers %}{% if c.debt and c.debt>0 %}
+    <tr><td>{{ c.name }}</td><td>{{ '%.2f'|format(c.debt) }}</td><td><a class="btn btn-sm btn-success" href="{{ url_for('customer_detail', customer_id=c.id) }}">Tahsilat</a></td></tr>
+  {% endif %}{% endfor %}
+  </tbody>
+</table>
+<script>$(function(){$('#tbl').DataTable();});</script>
+{% endblock %}
