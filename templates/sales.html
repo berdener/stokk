@@ -1,23 +1,183 @@
-{% extends "base.html" %}{% block content %}
+{% extends "base.html" %}
+{% block content %}
 <h3>Satış</h3>
-<form method="post" class="row g-3">
-  <div class="col-md-6">
-    <label class="form-label">Müşteri</label>
-    <select class="form-select" name="customer_id">
-      <option value="">(Seçilmedi)</option>
-      {% for c in customers %}<option value="{{ c.id }}">{{ c.name }}{% if c.phone %} - {{ c.phone }}{% endif %}</option>{% endfor %}
-    </select>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <label class="form-label">Müşteri</label>
+        <select class="form-select" id="customer_id">
+          <option value="">(Seçilmedi)</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}">{{ c.name }}{% if c.phone %} - {{ c.phone }}{% endif %}</option>
+          {% endfor %}
+        </select>
+
+        <div class="mt-3">
+          <label class="form-label">Barkod</label>
+          <input class="form-control" id="barcode" placeholder="Barkodu okutun" autofocus>
+          <small class="text-muted">Okuyucu genelde Enter yollar; alanın odakta olduğundan emin olun.</small>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label">Adet</label>
+          <input class="form-control" id="qty" type="number" min="1" value="1">
+        </div>
+
+        <div class="mt-3 d-grid">
+          <button class="btn btn-outline-primary" id="btnAdd">Sepete Ekle</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <label class="form-label">Ödeme</label>
+        <select class="form-select" id="payment">
+          <option value="nakit">Nakit</option>
+          <option value="kart">Kart</option>
+          <option value="veresiye">Veresiye</option>
+        </select>
+        <div class="d-grid mt-3">
+          <button class="btn btn-success btn-lg" id="btnCheckout">Satışı Tamamla</button>
+        </div>
+        <button class="btn btn-link text-danger mt-2" id="btnClear">Sepeti boşalt</button>
+      </div>
+    </div>
   </div>
-  <div class="col-md-3"><label class="form-label">Barkod</label><input class="form-control" name="barcode" placeholder="Barkodu okutun" autofocus required></div>
-  <div class="col-md-2"><label class="form-label">Adet</label><input class="form-control" name="qty" type="number" min="1" value="1"></div>
-  <div class="col-md-3">
-    <label class="form-label">Ödeme</label>
-    <select class="form-select" name="payment">
-      <option value="nakit">Nakit</option>
-      <option value="kart">Kart</option>
-      <option value="veresiye">Veresiye</option>
-    </select>
+
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Sepet</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle" id="cartTable">
+            <thead>
+              <tr>
+                <th>Ürün</th>
+                <th>Barkod</th>
+                <th class="text-end">Fiyat</th>
+                <th class="text-center">Adet</th>
+                <th class="text-end">Tutar</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cartRows">
+              {% for i in cart %}
+              <tr data-id="{{ i.product_id }}">
+                <td>{{ i.title }}</td>
+                <td>{{ i.barcode }}</td>
+                <td class="text-end">{{ '%.2f'|format(i.price) }} ₺</td>
+                <td class="text-center">
+                  <input type="number" min="0" class="form-control form-control-sm qty-input" value="{{ i.qty }}" style="width:90px;margin:0 auto;">
+                </td>
+                <td class="text-end">{{ '%.2f'|format(i.price * i.qty) }} ₺</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-x-lg"></i></button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="4" class="text-end">Toplam</th>
+                <th class="text-end" id="cartTotal">{{ '%.2f'|format(totals.amount) }} ₺</th>
+                <th></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <small class="text-muted">Adedi 0 yaparsan satır silinir.</small>
+      </div>
+    </div>
   </div>
-  <div class="col-12"><button class="btn btn-success btn-lg">Satışı Tamamla</button></div>
-</form>
+</div>
+
+<script>
+(function(){
+  const barcode = document.getElementById('barcode');
+  const qty = document.getElementById('qty');
+  const rows = document.getElementById('cartRows');
+  const totalEl = document.getElementById('cartTotal');
+  const customerSel = document.getElementById('customer_id');
+  const paymentSel = document.getElementById('payment');
+
+  function fmt(n){ return (Math.round(n*100)/100).toFixed(2) + ' ₺'; }
+
+  function render(cart, totals){
+    rows.innerHTML = '';
+    cart.forEach(i => {
+      const tr = document.createElement('tr');
+      tr.setAttribute('data-id', i.product_id);
+      tr.innerHTML = `
+        <td>${i.title}</td>
+        <td>${i.barcode || '-'}</td>
+        <td class="text-end">${fmt(i.price)}</td>
+        <td class="text-center"><input type="number" min="0" class="form-control form-control-sm qty-input" value="${i.qty}" style="width:90px;margin:0 auto;"></td>
+        <td class="text-end">${fmt(i.price * i.qty)}</td>
+        <td class="text-end"><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-x-lg"></i></button></td>`;
+      rows.appendChild(tr);
+    });
+    totalEl.textContent = fmt(totals.amount || 0);
+  }
+
+  async function post(url, body){
+    const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body || {})});
+    return await res.json();
+  }
+
+  // Barkod ekle (Enter veya buton)
+  barcode.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); document.getElementById('btnAdd').click(); }
+  });
+  document.getElementById('btnAdd').addEventListener('click', async ()=>{
+    const code = barcode.value.trim();
+    const q = parseInt(qty.value||'1',10);
+    if(!code) return;
+    const out = await post('/api/cart/add', {barcode: code, qty: q});
+    if(!out.ok){ alert(out.message||'Barkod bulunamadı'); return; }
+    render(out.cart, out.totals);
+    barcode.value=''; qty.value='1'; barcode.focus();
+  });
+
+  // Adet değişince güncelle
+  rows.addEventListener('change', async (e)=>{
+    if(!e.target.classList.contains('qty-input')) return;
+    const tr = e.target.closest('tr'); const pid = parseInt(tr.dataset.id,10);
+    const q = parseInt(e.target.value||'0',10);
+    const out = await post('/api/cart/update', {product_id: pid, qty: q});
+    if(out.ok){ render(out.cart, out.totals); }
+  });
+
+  // Satır sil
+  rows.addEventListener('click', async (e)=>{
+    if(!e.target.closest('.btnRemove')) return;
+    const tr = e.target.closest('tr'); const pid = parseInt(tr.dataset.id,10);
+    const out = await post('/api/cart/remove', {product_id: pid});
+    if(out.ok){ render(out.cart, out.totals); }
+  });
+
+  // Sepeti boşalt
+  document.getElementById('btnClear').addEventListener('click', async ()=>{
+    if(!confirm('Sepeti boşaltmak istiyor musunuz?')) return;
+    const out = await post('/api/cart/clear', {});
+    if(out.ok){ render(out.cart, out.totals); }
+  });
+
+  // Satışı tamamla
+  document.getElementById('btnCheckout').addEventListener('click', async ()=>{
+    const payment = paymentSel.value;
+    const customer_id = customerSel.value || null;
+    const out = await post('/api/cart/checkout', {payment, customer_id});
+    if(!out.ok){ alert(out.message||'Hata'); return; }
+    alert('Satış tamamlandı. Toplam: '+ fmt(out.total||0));
+    // sepet sıfırlandığı için sayfayı yenile
+    location.reload();
+  });
+
+  // Barkod alanını odakta tut
+  setInterval(()=>{ if(document.activeElement!==barcode) barcode.focus(); }, 2000);
+})();
+</script>
 {% endblock %}
