@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block content %}
+<h3>Yeni Müşteri</h3>
+<form method="post" class="row g-3">
+  <div class="col-md-6"><label class="form-label">Ad Soyad</label><input class="form-control" name="name" required></div>
+  <div class="col-md-3"><label class="form-label">Telefon</label><input class="form-control" name="phone"></div>
+  <div class="col-md-3"><label class="form-label">E-posta</label><input class="form-control" name="email" type="email"></div>
+  <div class="col-12"><button class="btn btn-primary">Kaydet</button></div>
+</form>
+{% endblock %}
