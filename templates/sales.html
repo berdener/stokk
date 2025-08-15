@@ -3,6 +3,7 @@
 <h3>Satış</h3>
 
 <div class="row g-3">
+  <!-- Sol panel: müşteri + barkod + indirim + ödeme -->
   <div class="col-lg-4">
     <div class="card shadow-sm">
       <div class="card-body">
@@ -17,7 +18,7 @@
         <div class="mt-3">
           <label class="form-label">Barkod</label>
           <input class="form-control" id="barcode" placeholder="Barkodu okutun" autofocus>
-          <small class="text-muted">Okuyucu genelde Enter yollar; alanın odakta olduğundan emin olun.</small>
+          <small class="text-muted">Okuyucu genelde Enter gönderir; alanın odakta olduğundan emin olun.</small>
         </div>
 
         <div class="mt-3">
@@ -28,17 +29,33 @@
         <div class="mt-3 d-grid">
           <button class="btn btn-outline-primary" id="btnAdd">Sepete Ekle</button>
         </div>
-      </div>
-    </div>
 
-    <div class="card shadow-sm mt-3">
-      <div class="card-body">
-        <label class="form-label">Ödeme</label>
-        <select class="form-select" id="payment">
-          <option value="nakit">Nakit</option>
-          <option value="kart">Kart</option>
-          <option value="veresiye">Veresiye</option>
-        </select>
+        <hr>
+
+        <!-- İndirim -->
+        <div class="mt-2">
+          <label class="form-label">İndirim</label>
+          <div class="input-group">
+            <select class="form-select" id="discount_type" style="max-width:150px">
+              <option value="none" selected>Yok</option>
+              <option value="percent">% Yüzde</option>
+              <option value="amount">₺ Tutar</option>
+            </select>
+            <input class="form-control" id="discount_value" type="number" step="0.01" value="0">
+          </div>
+          <small class="text-muted">Yüzde seçersen 0–100 arası gir.</small>
+        </div>
+
+        <!-- Ödeme -->
+        <div class="mt-3">
+          <label class="form-label">Ödeme</label>
+          <select class="form-select" id="payment">
+            <option value="nakit">Nakit</option>
+            <option value="kart">Kart</option>
+            <option value="veresiye">Veresiye</option>
+          </select>
+        </div>
+
         <div class="d-grid mt-3">
           <button class="btn btn-success btn-lg" id="btnCheckout">Satışı Tamamla</button>
         </div>
@@ -47,6 +64,7 @@
     </div>
   </div>
 
+  <!-- Sağ panel: sepet -->
   <div class="col-lg-8">
     <div class="card shadow-sm">
       <div class="card-body">
@@ -81,9 +99,16 @@
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="4" class="text-end">Toplam</th>
-                <th class="text-end" id="cartTotal">{{ '%.2f'|format(totals.amount) }} ₺</th>
-                <th></th>
+                <th colspan="4" class="text-end">Ara Toplam</th>
+                <th class="text-end" id="cartSubtotal">0,00 ₺</th><th></th>
+              </tr>
+              <tr>
+                <th colspan="4" class="text-end">İndirim</th>
+                <th class="text-end text-danger" id="cartDiscount">0,00 ₺</th><th></th>
+              </tr>
+              <tr>
+                <th colspan="4" class="text-end">Genel Toplam</th>
+                <th class="text-end fw-bold" id="cartGrand">0,00 ₺</th><th></th>
               </tr>
             </tfoot>
           </table>
@@ -99,27 +124,63 @@
   const barcode = document.getElementById('barcode');
   const qty = document.getElementById('qty');
   const rows = document.getElementById('cartRows');
-  const totalEl = document.getElementById('cartTotal');
   const customerSel = document.getElementById('customer_id');
   const paymentSel = document.getElementById('payment');
 
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const discountEl = document.getElementById('cartDiscount');
+  const grandEl = document.getElementById('cartGrand');
+  const discTypeSel = document.getElementById('discount_type');
+  const discValInput = document.getElementById('discount_value');
+
   function fmt(n){ return (Math.round(n*100)/100).toFixed(2) + ' ₺'; }
 
-  function render(cart, totals){
+  function render(cart){
     rows.innerHTML = '';
+    let subtotal = 0;
     cart.forEach(i => {
+      const line = (i.price || 0) * (i.qty || 0);
+      subtotal += line;
       const tr = document.createElement('tr');
       tr.setAttribute('data-id', i.product_id);
       tr.innerHTML = `
         <td>${i.title}</td>
         <td>${i.barcode || '-'}</td>
         <td class="text-end">${fmt(i.price)}</td>
-        <td class="text-center"><input type="number" min="0" class="form-control form-control-sm qty-input" value="${i.qty}" style="width:90px;margin:0 auto;"></td>
-        <td class="text-end">${fmt(i.price * i.qty)}</td>
+        <td class="text-center">
+          <input type="number" min="0" class="form-control form-control-sm qty-input" value="${i.qty}" style="width:90px;margin:0 auto;">
+        </td>
+        <td class="text-end">${fmt(line)}</td>
         <td class="text-end"><button class="btn btn-sm btn-outline-danger btnRemove"><i class="bi bi-x-lg"></i></button></td>`;
       rows.appendChild(tr);
     });
-    totalEl.textContent = fmt(totals.amount || 0);
+    // indirim uygula ve toplamları yaz
+    calcTotalsFromRows();
+  }
+
+  function calcTotalsFromRows(){
+    let subtotal = 0;
+    rows.querySelectorAll('tr').forEach(tr=>{
+      const priceText = tr.children[2].innerText.replace(' ₺','').replace(',','.');
+      const price = parseFloat(priceText) || 0;
+      const qtyInput = tr.querySelector('.qty-input');
+      const q = parseInt(qtyInput?.value || '0', 10);
+      subtotal += price * q;
+    });
+
+    let discount = 0;
+    const t = discTypeSel.value;
+    const v = parseFloat(discValInput.value || '0');
+    if(t === 'percent'){
+      const p = Math.min(Math.max(v,0),100);
+      discount = subtotal * (p/100);
+    }else if(t === 'amount'){
+      discount = Math.min(Math.max(v,0), subtotal);
+    }
+    const grand = subtotal - discount;
+    subtotalEl.textContent = fmt(subtotal);
+    discountEl.textContent = '-' + fmt(discount);
+    grandEl.textContent = fmt(grand);
   }
 
   async function post(url, body){
@@ -137,7 +198,7 @@
     if(!code) return;
     const out = await post('/api/cart/add', {barcode: code, qty: q});
     if(!out.ok){ alert(out.message||'Barkod bulunamadı'); return; }
-    render(out.cart, out.totals);
+    render(out.cart);
     barcode.value=''; qty.value='1'; barcode.focus();
   });
 
@@ -147,7 +208,7 @@
     const tr = e.target.closest('tr'); const pid = parseInt(tr.dataset.id,10);
     const q = parseInt(e.target.value||'0',10);
     const out = await post('/api/cart/update', {product_id: pid, qty: q});
-    if(out.ok){ render(out.cart, out.totals); }
+    if(out.ok){ render(out.cart); }
   });
 
   // Satır sil
@@ -155,29 +216,33 @@
     if(!e.target.closest('.btnRemove')) return;
     const tr = e.target.closest('tr'); const pid = parseInt(tr.dataset.id,10);
     const out = await post('/api/cart/remove', {product_id: pid});
-    if(out.ok){ render(out.cart, out.totals); }
+    if(out.ok){ render(out.cart); }
   });
 
   // Sepeti boşalt
   document.getElementById('btnClear').addEventListener('click', async ()=>{
     if(!confirm('Sepeti boşaltmak istiyor musunuz?')) return;
     const out = await post('/api/cart/clear', {});
-    if(out.ok){ render(out.cart, out.totals); }
+    if(out.ok){ render(out.cart); }
   });
 
   // Satışı tamamla
   document.getElementById('btnCheckout').addEventListener('click', async ()=>{
     const payment = paymentSel.value;
     const customer_id = customerSel.value || null;
-    const out = await post('/api/cart/checkout', {payment, customer_id});
+    const discount_type = discTypeSel.value;
+    const discount_value = parseFloat(discValInput.value || '0');
+    const out = await post('/api/cart/checkout', {payment, customer_id, discount_type, discount_value});
     if(!out.ok){ alert(out.message||'Hata'); return; }
-    alert('Satış tamamlandı. Toplam: '+ fmt(out.total||0));
-    // sepet sıfırlandığı için sayfayı yenile
+    alert(`Satış tamamlandı.\nAra Toplam: ${fmt(out.subtotal)}\nİndirim: -${fmt(out.discount)}\nGenel Toplam: ${fmt(out.total)}`);
     location.reload();
   });
 
   // Barkod alanını odakta tut
   setInterval(()=>{ if(document.activeElement!==barcode) barcode.focus(); }, 2000);
+
+  // Sayfa açılışında toplamları göster
+  calcTotalsFromRows();
 })();
 </script>
 {% endblock %}
