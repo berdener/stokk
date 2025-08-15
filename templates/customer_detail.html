@@ -14,7 +14,14 @@
   <thead><tr><th>Tarih</th><th>Ürün</th><th>Adet</th><th>Tutar</th><th>Ödeme</th></tr></thead>
   <tbody>
   {% for s in sales %}
-    <tr><td>{{ s.date.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ s.product_name }}</td><td>{{ s.qty }}</td><td>{{ '%.2f'|format(s.total) }} ₺</td><td>{{ s.payment }}</td></tr>
+    <tr>
+  <td>{{ s.date_str }}</td>
+  <td>{{ s.product_name }}</td>
+  <td>{{ s.qty }}</td>
+  <td>{{ '%.2f'|format(s.total) }} ₺</td>
+  <td>{{ s.payment }}</td>
+</tr>
+
   {% endfor %}
   </tbody>
 </table>
