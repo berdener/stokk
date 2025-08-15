@@ -27,9 +27,19 @@
 </div>
 
 <script>
-new Chart(document.getElementById('dailyChart'), {type:'bar',
-  data:{labels: {{ charts.daily.labels|tojson }}, datasets:[{label:'₺', data: {{ charts.daily.values|tojson }} }]}});
-new Chart(document.getElementById('pieChart'), {type:'pie',
-  data:{labels: {{ charts.pay.labels|tojson }}, datasets:[{data: {{ charts.pay.values|tojson }} }]}});
+new Chart(document.getElementById('dailyChart'), {
+  type:'bar',
+  data:{
+    labels: {{ charts.daily.labels|tojson }},
+    datasets:[{ label:'₺', data: {{ charts.daily['values']|tojson }} }]
+  }
+});
+new Chart(document.getElementById('pieChart'), {
+  type:'pie',
+  data:{
+    labels: {{ charts.pay.labels|tojson }},
+    datasets:[{ data: {{ charts.pay['values']|tojson }} }]
+  }
+});
 </script>
 {% endblock %}
