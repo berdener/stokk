@@ -523,23 +523,6 @@ def returns_page():
         flash("İşlem kaydedildi", "success")
         return redirect(url_for("returns_page"))
     return render_template("returns.html")
-@app.get("/returns/from_sale/<int:sale_id>")
-def return_from_sale(sale_id):
-    sale = Sale.query.get_or_404(sale_id)
-    customer = Customer.query.get(sale.customer_id) if sale.customer_id else None
-    product  = Product.query.get_or_404(sale.product_id)
-
-    # default: değişim (iade linki için ?rtype=iade kullanacağız)
-    rtype = request.args.get("rtype", "degisim")
-    prefill = {
-        "rtype": rtype,
-        "customer_id": customer.id if customer else "",
-        "old_barcode": product.barcode or "",
-        "qty": sale.qty or 1,
-        "payment": "nakit",
-        "original_sale_id": sale.id
-    }
-    return render_template("returns.html", prefill=prefill)
 
 # ---- Reports
 @app.route("/reports")
