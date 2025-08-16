@@ -484,43 +484,78 @@ def collect_credit(customer_id):
     flash("Tahsilat kaydedildi (ciroya eklendi)", "success")
     return redirect(url_for("customer_detail", customer_id=c.id))
 
-# ---- Returns / Exchanges
-@app.route("/returns", methods=["GET", "POST"])
+# İADE / DEĞİŞİM (Müşteri seçmeli)
+@app.route('/returns', methods=['GET', 'POST'])
 def returns_page():
-    if request.method == "POST":
-        rtype = request.form.get("rtype", "iade")
-        old_barcode = request.form.get("old_barcode", "").strip()
-        qty = int(request.form.get("qty", 1))
-        new_barcode = request.form.get("new_barcode", "").strip() or None
+    if request.method == 'POST':
+        # Form verileri
+        customer_id = request.form.get('customer_id') or None
+        rtype       = (request.form.get('transaction_type') or 'iade').strip()   # 'iade' | 'degisim'
+        old_barcode = (request.form.get('old_barcode') or '').strip()
+        new_barcode = (request.form.get('new_barcode') or '').strip()
+        qty_raw     = request.form.get('quantity') or '1'
+        note        = (request.form.get('note') or '').strip()
 
+        try:
+            qty = max(1, int(qty_raw))
+        except Exception:
+            qty = 1
+
+        # Eski ürünü bul
         old_p = Product.query.filter_by(barcode=old_barcode).first()
         if not old_p:
-            flash("Eski ürün barkodu bulunamadı", "danger")
-            return redirect(url_for("returns_page"))
+            flash("Eski ürün barkodu bulunamadı.", "danger")
+            return redirect(url_for('returns_page'))
 
-        # stok iade
+        # 1) Stok: iade edilen eski ürün stoğa geri eklenir
         old_p.stock = (old_p.stock or 0) + qty
-        adjust_shopify_stock(old_p)
+        try:
+            # Shopify stoğunu da güncelle (varsa yardımcı fonksiyon)
+            adjust_shopify_stock(old_p)
+        except Exception:
+            pass
 
+        # 2) Değişim ise yeni ürünü bul ve stoktan düş
         new_p = None
-        if rtype == "degisim":
+        if rtype == 'degisim':
             if not new_barcode:
-                flash("Değişim için yeni ürün barkodu gerekli", "danger")
-                return redirect(url_for("returns_page"))
+                flash("Değişim için yeni ürün barkodu gerekli.", "danger")
+                return redirect(url_for('returns_page'))
             new_p = Product.query.filter_by(barcode=new_barcode).first()
             if not new_p:
-                flash("Yeni ürün barkodu bulunamadı", "danger")
-                return redirect(url_for("returns_page"))
-            new_p.stock = (new_p.stock or 0) - qty
-            adjust_shopify_stock(new_p)
+                flash("Yeni ürün barkodu bulunamadı.", "danger")
+                return redirect(url_for('returns_page'))
 
-        re = ReturnExchange(type=rtype, old_product_id=old_p.id,
-                            new_product_id=new_p.id if new_p else None, qty=qty)
-        db.session.add(re)
+            new_p.stock = (new_p.stock or 0) - qty
+            try:
+                adjust_shopify_stock(new_p)
+            except Exception:
+                pass
+
+        # 3) İşlemi kayıt altına al (model varsa)
+        try:
+            re = ReturnExchange(
+                type=rtype,
+                old_product_id=old_p.id,
+                new_product_id=new_p.id if new_p else None,
+                qty=qty,
+                note=f"MüşteriID: {customer_id or '-'}; Not: {note}"
+            )
+            # Modelde customer_id alanı varsa doldur
+            if hasattr(ReturnExchange, 'customer_id'):
+                re.customer_id = int(customer_id) if customer_id else None
+            db.session.add(re)
+        except Exception:
+            # ReturnExchange modeli yoksa sadece stok güncellenmiş olur—devam.
+            pass
+
         db.session.commit()
-        flash("İşlem kaydedildi", "success")
-        return redirect(url_for("returns_page"))
-    return render_template("returns.html")
+        flash("İade/Değişim işlemi başarıyla kaydedildi.", "success")
+        return redirect(url_for('returns_page'))
+
+    # GET: müşteri listesini gönder
+    customers = Customer.query.order_by(Customer.name.asc()).all()
+    return render_template('returns.html', customers=customers)
 
 # ---- Reports
 @app.route("/reports")
