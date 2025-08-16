@@ -20,13 +20,12 @@
   <td>{{ s.qty }}</td>
   <td>{{ '%.2f'|format(s.total) }} ₺</td>
   <td>{{ s.payment }}</td>
-</tr>
 <td>
   <a href="/returns?order_id={{ sale.id }}" class="btn btn-warning btn-sm">
     İade / Değişim
   </a>
 </td>
-
+</tr>
   {% endfor %}
   </tbody>
 </table>
