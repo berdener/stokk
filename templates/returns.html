@@ -1,12 +1,52 @@
-{% extends "base.html" %}{% block content %}
-<h3>İade / Değişim</h3>
-<form method="post" class="row g-3">
-  <div class="col-md-3"><label class="form-label">Tür</label>
-    <select class="form-select" name="rtype"><option value="iade">İade</option><option value="degisim">Değişim</option></select>
-  </div>
-  <div class="col-md-3"><label class="form-label">Eski Ürün Barkodu</label><input class="form-control" name="old_barcode" required></div>
-  <div class="col-md-2"><label class="form-label">Adet</label><input class="form-control" name="qty" type="number" min="1" value="1"></div>
-  <div class="col-md-3"><label class="form-label">Yeni Ürün Barkodu (Değişimde)</label><input class="form-control" name="new_barcode"></div>
-  <div class="col-12"><button class="btn btn-warning">İşlemi Kaydet</button></div>
-</form>
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>İade / Değişim</h2>
+    <form method="POST" action="/returns">
+        <!-- Müşteri Seçimi -->
+        <div class="form-group">
+            <label for="customer">Müşteri Seç</label>
+            <select class="form-control" id="customer" name="customer_id" required>
+                {% for customer in customers %}
+                <option value="{{ customer.id }}">{{ customer.name }} - {{ customer.phone }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- İşlem Türü -->
+        <div class="form-group mt-3">
+            <label for="transaction_type">Tür</label>
+            <select class="form-control" id="transaction_type" name="transaction_type" required>
+                <option value="iade">İade</option>
+                <option value="degisim">Değişim</option>
+            </select>
+        </div>
+
+        <!-- Eski Ürün Barkodu -->
+        <div class="form-group mt-3">
+            <label for="old_barcode">Eski Ürün Barkodu</label>
+            <input type="text" class="form-control" id="old_barcode" name="old_barcode" required>
+        </div>
+
+        <!-- Yeni Ürün Barkodu (sadece değişimde) -->
+        <div class="form-group mt-3">
+            <label for="new_barcode">Yeni Ürün Barkodu (Değişimde)</label>
+            <input type="text" class="form-control" id="new_barcode" name="new_barcode">
+        </div>
+
+        <!-- Adet -->
+        <div class="form-group mt-3">
+            <label for="quantity">Adet</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" value="1" required>
+        </div>
+
+        <!-- Açıklama -->
+        <div class="form-group mt-3">
+            <label for="note">Açıklama</label>
+            <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">İşlemi Kaydet</button>
+    </form>
+</div>
 {% endblock %}
