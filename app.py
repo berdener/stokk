@@ -437,7 +437,7 @@ def add_customer_page():
         return redirect(url_for("customers_page"))
     return render_template("add_customer.html")
 
-appings().all()
+mappings().all()
 @app.route("/customers/<int:customer_id>")
 def customer_detail(customer_id):
     c = Customer.query.get_or_404(customer_id)
