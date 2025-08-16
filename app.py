@@ -444,24 +444,23 @@ def customer_detail(customer_id):
     year_ago = datetime.utcnow() - timedelta(days=365)
 
     rows = db.session.execute(db.text("""
-        SELECT s.id as sale_id,
-               s.created_at as date,
-               p.title as product_name,
-               s.qty as qty,
-               s.total_price as total,
-               s.payment as payment
+        SELECT s.created_at as date, p.title as product_name, s.qty as qty,
+               s.total_price as total, s.payment as payment
         FROM sale s
         JOIN product p ON p.id = s.product_id
         WHERE s.customer_id = :cid AND s.created_at >= :d
         ORDER BY s.created_at DESC
     """), {"cid": c.id, "d": year_ago}).mappings().all()
 
+    # datetime/string uyumlusu
     sales = []
     for r in rows:
         d = r["date"]
-        d_str = d.strftime("%Y-%m-%d %H:%M") if hasattr(d, "strftime") else str(d)
+        if hasattr(d, "strftime"):
+            d_str = d.strftime("%Y-%m-%d %H:%M")
+        else:
+            d_str = str(d)  # ISO string ise direkt
         sales.append({
-            "id": r["sale_id"],          # BUTON için gerekli
             "date_str": d_str,
             "product_name": r["product_name"],
             "qty": r["qty"],
